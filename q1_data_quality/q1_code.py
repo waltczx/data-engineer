@@ -105,7 +105,8 @@ def table(headers: list[str], rows: list[list[object]]) -> str:
 
 def top_values(series: pd.Series, limit: int) -> list[list[object]]:
     """前 limit 个高频值；缺失值也计入，显示为 (缺失)。"""
-    counts = series.astype("string").fillna("(缺失)").value_counts().head(limit)
+    # 先按值排序、再按次数稳定排序：次数相同时按值的字母顺序，保证不同 pandas 版本输出一致。
+    counts = series.astype("string").fillna("(缺失)").value_counts().sort_index().sort_values(ascending=False, kind="stable").head(limit)
     return [[value, int(count)] for value, count in counts.items()]
 
 
@@ -251,7 +252,7 @@ def match_opposite_rows(frame: pd.DataFrame, limit: int) -> list[list[object]]:
 
     只对 limit 行（默认 6 行）逐行查找，不是全表循环。
     """
-    largest = frame.reindex(frame["_qty"].abs().sort_values(ascending=False).index).head(limit)
+    largest = frame.reindex(frame["_qty"].abs().sort_values(ascending=False, kind="stable").index).head(limit)
     rows = []
     for _, row in largest.iterrows():
         same_pair = flag(
@@ -288,7 +289,7 @@ def return_matching(frame: pd.DataFrame) -> dict[str, object]:
     right = buys[["customer_id", "_stock", "_qty", "_dt"]].rename(columns={"_qty": "_abs", "_dt": "_buy_dt"})
     merged = left.merge(right, on=["customer_id", "_stock", "_abs"], how="inner")
     merged = merged[merged["_buy_dt"] <= merged["_dt"]]
-    latest = merged.sort_values("_buy_dt").groupby("index").tail(1)
+    latest = merged.sort_values("_buy_dt", kind="stable").groupby("index").tail(1)
     gap = latest["_dt"] - latest["_buy_dt"]
     bins = [pd.Timedelta(0), pd.Timedelta(hours=1), pd.Timedelta(days=1), pd.Timedelta(days=7),
             pd.Timedelta(days=30), pd.Timedelta(days=365), pd.Timedelta(days=10_000)]
@@ -333,7 +334,7 @@ def price_analysis(frame: pd.DataFrame) -> dict[str, object]:
         grouped = example.groupby("_price").agg(
             rows=("_qty", "size"), qty_median=("_qty", "median"),
             known=("customer_id", lambda s: s.notna().mean()),
-        ).sort_values("rows", ascending=False).head(6)
+        ).sort_values("rows", ascending=False, kind="stable").head(6)
         example_rows = [[number(price), f"{int(r.rows):,}", number(r.qty_median), f"{r.known:.0%}"]
                         for price, r in grouped.iterrows()]
 
@@ -504,7 +505,7 @@ def build_quality_report(frame: pd.DataFrame, top_n: int) -> str:
     zero_price = price == 0
     dup = duplicate_summary(frame)
     month = dt.dt.to_period("M")
-    weekday = dt.dt.dayofweek
+    weekday = dt.dt.day_of_week
     saturday_dates = sorted(dt[weekday == 5].dt.date.unique())
     prices = price_analysis(frame)
     returns = return_matching(frame)
@@ -694,7 +695,7 @@ def build_findings_evidence(frame: pd.DataFrame, top_n: int, sample_n: int) -> s
 
     # --- 问题 3 ---
     prices = price_analysis(frame)
-    outliers = prices["outliers"].sort_values("_price", ascending=False)
+    outliers = prices["outliers"].sort_values("_price", ascending=False, kind="stable")
     lines.extend([
         "## 问题 3：极端值",
         "",
@@ -711,7 +712,7 @@ def build_findings_evidence(frame: pd.DataFrame, top_n: int, sample_n: int) -> s
         "",
         "单价最高的记录：",
         "",
-        sample_table(frame.sort_values("_price", ascending=False), show, 5),
+        sample_table(frame.sort_values("_price", ascending=False, kind="stable"), show, 5),
         "",
         f"普通商品销售中单价超过该商品中位单价 10 倍的记录：{len(outliers):,} 行（支持代码：`price_analysis()`）。单价最高的 8 行：",
         "",
@@ -828,7 +829,7 @@ def build_findings_evidence(frame: pd.DataFrame, top_n: int, sample_n: int) -> s
         "dup": dup["is_dup"].groupby(month).sum(),
         "missing": missing.groupby(month).mean(),
     })
-    weekday_counts = dt.dt.dayofweek.value_counts().reindex(range(7), fill_value=0)
+    weekday_counts = dt.dt.day_of_week.value_counts().reindex(range(7), fill_value=0)
     hours = dt.dt.hour.value_counts().sort_index()
     lines.extend([
         "## 补充 3：时间维度",

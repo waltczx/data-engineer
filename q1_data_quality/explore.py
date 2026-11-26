@@ -103,7 +103,7 @@ def step4_return_matching(df: pd.DataFrame) -> None:
 def step5_time(df: pd.DataFrame) -> None:
     """问题：交易在星期、小时、月份上怎么分布？完全重复的行集中在什么时候？"""
     print(df["dt"].dt.day_name().value_counts().to_string())
-    saturday = df[df["dt"].dt.dayofweek == 5]
+    saturday = df[df["dt"].dt.day_of_week == 5]
     print(f"\n周六的行按日期：{saturday['dt'].dt.date.value_counts().to_dict()}")
     print(f"\n小时分布：{df['dt'].dt.hour.value_counts().sort_index().to_dict()}")
     dup = df.duplicated(subset=["Invoice", "StockCode", "Description", "Quantity", "InvoiceDate", "Price", "Customer ID", "Country"])
