@@ -20,7 +20,7 @@ cryptography>=42.0.0     # MySQL 8 默认 caching_sha2_password 认证需要
 
 # 数据集下载（如果需要从网络拉数据）
 ucimlrepo>=0.0.3         # 拉 UCI Online Retail II
-kagglehub>=0.2.0         # 拉 Kaggle 数据集（可选）
+kagglehub>=1.0.3         # 自动下载两份 Kaggle 数据集
 
 # LLM API（任选）
 openai>=1.0.0            # OpenAI API
