@@ -186,11 +186,16 @@ def text_key(text: str) -> str:
 # Prompt 与 API
 # ---------------------------------------------------------------------------
 def load_prompt(path: Path) -> tuple[str, str]:
+    """按整行匹配分节标题读取 system 和 user 两节（头部说明文字里即使提到标题也不会被误切）。"""
     content = path.read_text(encoding="utf-8")
-    system = content.split("### SYSTEM ###", 1)[1].split("### USER ###", 1)[0].strip()
-    user = content.split("### USER ###", 1)[1].strip()
+    pattern = (r"^# === System Prompt ===[ \t]*\n(.*?)^# === User Prompt Template ===[ \t]*\n(.*?)"
+               r"^# === Few-shot Examples")
+    match = re.search(pattern, content, re.S | re.M)
+    if match is None:
+        raise ValueError("prompt_template.txt 缺少 System Prompt / User Prompt Template / Few-shot Examples 分节标题")
+    system, user = match.group(1).strip(), match.group(2).strip()
     if "{reviews_json}" not in user:
-        raise ValueError("prompt_template.txt 的 USER 部分缺少 {reviews_json} 占位符")
+        raise ValueError("prompt_template.txt 的 User Prompt Template 部分缺少 {reviews_json} 占位符")
     return system, user
 
 

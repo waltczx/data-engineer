@@ -1,12 +1,25 @@
 ================================================================
 Q4 LLM Prompt 模板
 ================================================================
-本文件由 extract_reviews.py 直接读取：
-  "### SYSTEM ###" 与 "### USER ###" 之间是 system prompt；
-  "### USER ###" 之后是 user prompt 模板，{reviews_json} 会被替换为一批评价。
-修改本文件即修改实际发送给模型的 prompt。
+请在此处设计你的 Prompt。这是评分的重要部分。
 
-设计要点（详细理由见 pipeline_design.md）：
+设计建议：
+1. System Prompt + Few-shot examples 通常优于纯 Zero-shot
+2. 明确规定输出 JSON schema
+3. 加入"如果原文没提到，请不要编造"这类反幻觉指令
+4. 葡萄牙语处理：让模型直接处理 vs 先翻译再处理
+5. 要求 evidence_quote 必须出自原文（防幻觉）
+
+================================================================
+
+本文件由 extract_reviews.py 的 load_prompt() 直接读取（按整行匹配下面的分节标题）：
+  "# === System Prompt ===" 一节是 system prompt（few-shot 示例也写在其中，和 system prompt 一起被缓存、按批分摊）；
+  "# === User Prompt Template ===" 一节是 user prompt 模板，{reviews_json} 会被替换为一批评价（默认 20 条），
+  所以占位符不是单条的 {review_text}；
+  "# === Few-shot Examples" 和 "# === Output Schema ===" 两节是题目模板自带的说明，程序不读取。
+修改前两节即修改实际发送给模型的 prompt；修改后请把 extract_reviews.py 的 PROMPT_VERSION 加 1，使旧缓存失效。
+
+本次的设计要点（详细理由见 pipeline_design.md）：
 1. 一次请求处理一批评价（默认 20 条）。system prompt 放在最前且保持不变，
    DeepSeek 会对相同前缀自动缓存，第二次起按缓存命中价计费，几乎免费；few-shot 也放在 system 里一起缓存。
 2. 输出强制为 json（API 的 json_object 模式 + prompt 中给出完整格式示例）。
@@ -15,9 +28,17 @@ Q4 LLM Prompt 模板
    既省掉一次翻译调用，又保证 evidence_quote 是原文而不是译文。
 5. 情感分数按文本判断，不按星级：数据里有评分 1 星但正文写 "bom"（好）的评价。
 6. 类别定义来自对真实评价的观察，例如"没收到货"在数据中极多，明确归入 delivery_late。
+
+已知问题（提交后发现，详见 pipeline_design.md 的“已知问题”）：
+  正式运行时，本文件头部的说明文字里也出现了分节标记，旧版 load_prompt() 按第一次出现的位置切分，
+  结果 system 消息只有几个字符，本该放在 system 里的全部指令和示例被放进了 user 消息的开头。
+  指令内容没有变，只是所在的消息角色不同；现有的 extracted_issues.json 和缓存都是在这种情况下产生的。
+  现在已改为按整行匹配分节标题。
+
 ================================================================
 
-### SYSTEM ###
+# === System Prompt ===
+
 You extract concrete problems from Brazilian Portuguese customer reviews of orders on the Olist marketplace. Every review you receive was rated 1 to 3 stars. Answer in json only.
 
 For each review return: id, issues, sentiment_score, actionable_for_seller, confidence.
@@ -65,6 +86,54 @@ Example output:
   "sentiment_score": -0.7, "actionable_for_seller": true, "confidence": 0.9}
 ]}
 
-### USER ###
+
+# === User Prompt Template ===
+
 Extract issues from these reviews and answer in json. Input (list of {"id", "text"}):
 {reviews_json}
+
+
+# === Few-shot Examples（如有）===
+
+（下面的 Example 1 是题目模板自带的，已包含在上面 System Prompt 末尾的示例中；本节程序不读取。）
+
+Example 1:
+Input: "Produto chegou quebrado, embalagem rasgada. Pessimo!"
+Expected Output:
+{
+  "issues": [
+    {
+      "category": "quality_defect",
+      "severity": "high",
+      "evidence_quote": "Produto chegou quebrado",
+      "evidence_quote_en": "Product arrived broken"
+    },
+    {
+      "category": "packaging",
+      "severity": "medium",
+      "evidence_quote": "embalagem rasgada",
+      "evidence_quote_en": "packaging torn"
+    }
+  ],
+  "sentiment_score": -0.9,
+  "actionable_for_seller": true,
+  "confidence": 0.95
+}
+
+
+# === Output Schema ===
+
+{
+  "review_id": "...",
+  "issues": [
+    {
+      "category": "delivery_late | wrong_product | quality_defect | missing_item | seller_communication | packaging | other",
+      "severity": "low | medium | high",
+      "evidence_quote": "原文中证明这个问题的句子（葡萄牙语）",
+      "evidence_quote_en": "英文翻译"
+    }
+  ],
+  "sentiment_score": -1.0 ~ 1.0,
+  "actionable_for_seller": true | false,
+  "confidence": 0.0 ~ 1.0
+}

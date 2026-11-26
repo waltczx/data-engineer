@@ -26,3 +26,14 @@
 ## 准确率
 
 全量自动检查、单条与批量的一致性、30 条分层标注三层评估，见 `accuracy_evaluation.md`。模型结果缓存在 `llm_cache.jsonl` 中随仓库提交，评审没有 key 也能复现。
+
+## 已知问题：正式运行时 prompt 的消息角色切错了
+
+提交后整理 `prompt_template.txt` 时发现：文件头部的说明文字里也写了分节标记，而旧版 `load_prompt()` 按标记**第一次出现**的位置切分。结果正式运行时：
+
+- system 消息只有几个字符（说明文字里两个标记之间的 `" 与 "`）；
+- 本该放在 system 里的全部指令和 3 个示例，连同头部的中文说明，被放进了 user 消息的开头，后面才是这一批评价。
+
+指令和示例的内容没有变，只是所在的消息角色不同；模型仍然按要求输出了合法 JSON，全量自动检查、一致性实验和人工标注的结论（见 `accuracy_evaluation.md`）都是在这种情况下得到的。上文和 `cost_report.md` 里说的"system prompt 约 1,400 token、由 20 条分摊"，实际是 user 消息里每批都相同的那段前缀，token 数和计费不受影响。缓存命中一直为 0 是否与此有关，目前不能确定。
+
+现已改为按整行匹配分节标题，并加了单元测试（`tests/test_q4_extract.py` 的 `PromptTemplateTests`）。为了让没有 key 的评审仍能用缓存复现提交的结果，`PROMPT_VERSION` 没有改动；如果要得到"真正放在 system 里"的结果，需要把 `PROMPT_VERSION` 改为 `v2` 后重新全量运行（按本次账单约 ¥8）。

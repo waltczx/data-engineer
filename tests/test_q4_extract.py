@@ -122,5 +122,17 @@ class CostTests(unittest.TestCase):
         self.assertAlmostEqual(cost, 0.003 + 0.15 + 0.60)
 
 
+class PromptTemplateTests(unittest.TestCase):
+    def test_sections_are_split_by_whole_line_headings(self) -> None:
+        system, user = q4.load_prompt(q4.PROMPT_PATH)
+        # 头部说明文字里提到了分节标题，不能被误当成切分点
+        self.assertTrue(system.startswith("You extract concrete problems"))
+        self.assertNotIn("# ===", system)
+        self.assertNotIn("本文件由", system)
+        self.assertTrue(user.startswith("Extract issues from these reviews"))
+        self.assertIn("{reviews_json}", user)
+        self.assertNotIn("Example 1", user)
+
+
 if __name__ == "__main__":
     unittest.main()
