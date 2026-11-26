@@ -6,8 +6,10 @@
     python run_all.py --module q1       # 只运行第一题
     python run_all.py                   # 依次尝试所有模块
 
-当前是运行框架。数据缺失时会自动下载；Q1/Q3/Q4 脚本完成后会由这里调用；
-Q2 的 MySQL 导入与 SQL 执行、Q5 的文档检查仍需后续接入。
+数据缺失时会自动下载（Kaggle），然后依次运行 Q1–Q4；Q5 是纯文档，跳过。
+每个模块在独立子进程中运行，一个模块失败不影响后面的模块，最后有任何失败则退出码为 1。
+Q2 需要可连接的 MySQL 8.0（参数见 q2_sql_analysis/load_olist.py）；
+Q4 没有 DEEPSEEK_API_KEY 时只使用已提交的缓存结果，不调用 API。
 """
 
 from __future__ import annotations
@@ -45,7 +47,9 @@ MODULES: dict[str, dict[str, object]] = {
         "inputs": (RETAIL_CSV,),
     },
     "q2": {
-        "script": None,  # TODO: 接入 MySQL 8.0 导入及四份 SQL 的执行。
+        # 导入 Olist 到 MySQL 8.0 并执行 3 个 SQL；连接参数见 q2_sql_analysis/load_olist.py。
+        # Q2.4 的性能实测较慢，不在一键流程里，单独运行 q2_sql_analysis/q2_4_benchmark.py。
+        "script": ROOT / "q2_sql_analysis" / "run_sql.py",
         "inputs": tuple(OLIST_DIR / name for name in OLIST_FILES),
     },
     "q3": {
@@ -57,7 +61,7 @@ MODULES: dict[str, dict[str, object]] = {
         "inputs": (OLIST_DIR / "olist_order_reviews_dataset.csv",),
     },
     "q5": {
-        "script": None,  # TODO: 人工核查系统设计文档，不需要读取数据集。
+        "script": None,  # 纯文档（q5_system_design/real_time_pipeline_design.md），没有可执行代码。
         "inputs": (),
     },
 }
@@ -238,8 +242,7 @@ def main() -> int:
 
         script = config["script"]
         if script is None:
-            print("尚未接入自动执行；请按模块要求完成 SQL 或设计文档。")
-            pending = True
+            print("纯文档模块，无需运行。")
             continue
         assert isinstance(script, Path)
         if not script.is_file():
@@ -262,7 +265,7 @@ def main() -> int:
     if failed:
         return 1
     if pending:
-        print("\n部分模块尚未接入；当前入口只是运行框架。")
+        print("\n部分模块的脚本不存在。")
         return 2
     return 0
 

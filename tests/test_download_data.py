@@ -88,7 +88,7 @@ class RunAllDownloadTests(unittest.TestCase):
                 result = run_all.main()
 
             download.assert_called_once_with()
-            self.assertEqual(result, 2)  # 数据已补齐，模块脚本仍待实现。
+            self.assertEqual(result, 0)  # 数据已补齐；script 为 None 表示纯文档模块，不算失败。
             self.assertTrue(retail.is_file())
 
 
