@@ -1,0 +1,36 @@
+review_id,route,review_score,text,model_categories,model_quotes,sentiment_score,actionable_for_seller,human_categories,human_note
+92232da490733d1b4a7add6b0bf6799c,llm,1,"Atraso - Cartão SD
+Enviei um e-mail refente ao atraso de envio do produto. Obtive uma resposta falando que a estimativa de entrega é do correio, porém, o objeto nem foi colocado em transporte ainda!!!!",delivery_late,o objeto nem foi colocado em transporte ainda,-0.8,True,delivery_late,
+5bc9919d5709aa16fd8d0094a2b120bb,llm,1,"Falta de respeito
+Uma vergonha uma empresa vender um livro, mas entregar outro que de nada serve para meus estudos. Optei por comprar com a empresa e agora não há mais em outras e nem nessa porcaria... revoltado.",wrong_product,"uma empresa vender um livro, mas entregar outro",-0.9,True,wrong_product,
+799702afc49bd50a2bf30b1ead4eedc9,llm,1,"Até agora não recebi meu produto, estou esperando pois se não for enviado quero a devolução do meu dinheiro",delivery_late,Até agora não recebi meu produto,-0.6,True,delivery_late,
+c99bd47a251c0fef5b5933b293acea03,llm,1,"Muito atraso na entrega de um produto simples e pequeno. Até hoje não recebi nem o produto, nem uma satisfação sobre o assunto.",delivery_late;seller_communication,Até hoje não recebi nem o produto | nem uma satisfação sobre o assunto,-0.9,True,delivery_late;seller_communication,
+cfaa07af04ff25fb65bc94a295a8454a,llm,1,"Não comprem esse produto, muito mal acabado, veio acabamento com furos no pé da cadeira, acabamento das costas com furos errados e mal cortado alem da fragilidade do encosto. Não Recomendo.",quality_defect,"muito mal acabado, veio acabamento com furos no pé da cadeira, acabamento das costas com furos errados e mal cortado",-0.8,True,quality_defect,
+bf7ebcd3cf1bb93a91b87f0180c6ff79,llm,2,"Não recomendado
+Alojas lannister mantem parceiros que não agem como ela pois comprei 04 colchas de casal chenille e a empresa parceira só me encaminhou uma e nem o codigo de rastreamento das demais foi encaminhado .",missing_item;seller_communication,comprei 04 colchas de casal chenille e a empresa parceira só me encaminhou uma | nem o codigo de rastreamento das demais foi encaminhado,-0.8,True,missing_item;seller_communication,
+f920787fac302d4223ed6c9ad5ba433f,llm,2,"Achei que a cortina e muito fina ,ela é tudo junto achei que fosse 4 partes ela é transparente. Não compraria novamente",quality_defect;wrong_product,Achei que a cortina e muito fina | ela é tudo junto achei que fosse 4 partes ela é transparente,-0.7,True,quality_defect,以为是 4 片是顾客自己的预期，原文没说商品与描述不符，不算 wrong_product
+2f111691fc93df88fc3aa8c2deac61ce,llm,2,O produto veio faltando a base para auto e como eu fiz o pedido por telefone justamente para confirmar se a base demonstrada pela foto acompanhava o produto e tbm constava na descrição do item.,missing_item,veio faltando a base para auto,-0.7,True,missing_item,
+b5846050b6ce72c6169717f9e4226da0,llm,2,"Produto muito bom, porém não coube o meu notebook apesar de seguir as medidas informadas na venda. Demora na atualização das informações até a entrega.",seller_communication;wrong_product,não coube o meu notebook apesar de seguir as medidas informadas na venda | Demora na atualização das informações até a entrega,-0.2,True,quality_defect;delivery_late,按尺寸却装不下=比描述差（quality_defect）；物流信息更新慢按定义属 delivery_late
+caf2fda142dedd88d1d655453e5a598d,llm,2,"O produto veio fora da especificação. A calota vendida tinha o símbolo da Citroën, mas a calota veio sem este símbolo.",wrong_product,"A calota vendida tinha o símbolo da Citroën, mas a calota veio sem este símbolo",-0.6,True,wrong_product,
+d59ec5259cc47df14c73fd5fcca50ef8,llm,3,"Ok
+Na minha opinião não veio exatamente o que pede, pois não vei os dois conectores vermelhos,,,mas deu certo",missing_item,não vei os dois conectores vermelhos,-0.2,True,missing_item,
+7b6b646410d7bc5d32b87a9d2f88e92d,llm,3,"Pedido veio errado
+Comprei duas unidades, foi entregue somente uma.",missing_item,"Comprei duas unidades, foi entregue somente uma",-0.8,True,missing_item,
+d889e8384194cc18e403f34a63bb1528,llm,3,"Entregue bem antes do prazo, muito bem!",,,0.9,False,,none
+a85ddf5dee2c3daccb578d96422a5f84,llm,3,"Iria comprar mais de voces, mais vi que quanto mais produtos o frete dobra ou triplica!!!",other,quanto mais produtos o frete dobra ou triplica,-0.5,False,other,
+0b203c48224f05538b45023809d2988f,llm,3,Só gostaria de saber o dia correto da entrega .,delivery_late,Só gostaria de saber o dia correto da entrega,-0.2,True,seller_communication,只是询问准确送达日期，属于信息不透明；原文未说已经延误
+fa58c1cc692cdd5e4d378ff443b587f4,rule,1,Regular,,,0.0,False,,none
+afbf2988dbdc480e574b7f65bbf2fcc9,rule,1,Não recebi o produto,delivery_late,Não recebi o produto,-0.8,True,delivery_late,
+389af6498fb68aa7cfc08d1fb356f57f,rule,1,Não recebi ainda,delivery_late,Não recebi ainda,-0.8,True,delivery_late,
+72926e5236768ffc912764ca429d0e00,rule,1,Muita demora na entrega,delivery_late,Muita demora na entrega,-0.6,True,delivery_late,
+ea0036b547cb7e145507d50c4d64ce2a,rule,1,produto veio com defeito,quality_defect,produto veio com defeito,-0.8,True,quality_defect,
+b8fab172a4c5588e3a435f451e4c911f,rule,2,Gostei,,,0.7,False,,none
+0d322bcc61875aa8332aa2c4b85d7704,rule,2,Produto de baixa qualidade.,quality_defect,Produto de baixa qualidade.,-0.6,True,quality_defect,
+595841af5795c84f40c9158e53474286,rule,2,"estou aguardando o produto,!!!!!",delivery_late,"estou aguardando o produto,!!!!!",-0.8,True,delivery_late,
+edf0a61fdccf258654cb87ba64643d27,rule,2,muito demorado,delivery_late,muito demorado,-0.6,True,delivery_late,
+dee9554edc5fbdcd60b601e2829e5062,rule,2,Bom,,,0.6,False,,none
+7dd542cbed64e83a78d4944ce5ecd5dc,rule,3,Frete muito caro,other,Frete muito caro,-0.3,True,other,
+853819599f18f41524b2dfdad56fdd7d,rule,3,Bom,,,0.6,False,,none
+06e733488f8ea8f7c5a64a9905c2ef3a,rule,3,Bom produto!!!,,,0.7,False,,none
+0de5afcfb89bbc4929292053e2950c15,rule,3,Ótima,,,0.8,False,,none
+329e0375b74f6dc700a7968a3d7848a9,rule,3,Bom,,,0.6,False,,none

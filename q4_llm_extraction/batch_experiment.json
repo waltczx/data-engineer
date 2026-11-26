@@ -1,0 +1,29 @@
+{
+  "single": {
+    "requests": 40,
+    "failed_requests": 0,
+    "cache_hit_tokens": 0,
+    "cache_miss_tokens": 58056,
+    "output_tokens": 4204,
+    "cost_usd": 0.011230799999999999,
+    "peak_requests": 0,
+    "dropped_ungrounded": 0,
+    "dropped_invalid": 0,
+    "cost_per_review_usd": 0.00028076999999999996
+  },
+  "batch": {
+    "requests": 2,
+    "failed_requests": 0,
+    "cache_hit_tokens": 0,
+    "cache_miss_tokens": 5874,
+    "output_tokens": 4167,
+    "cost_usd": 0.0033812999999999994,
+    "peak_requests": 0,
+    "dropped_ungrounded": 0,
+    "dropped_invalid": 0,
+    "cost_per_review_usd": 8.453249999999999e-05
+  },
+  "sample_size": 40,
+  "same_category_set": 33,
+  "same_category_rate": 0.825
+}

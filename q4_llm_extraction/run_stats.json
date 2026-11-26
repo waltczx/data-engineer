@@ -1,0 +1,38 @@
+{
+  "finished_at": "2026-11-26T21:38:52",
+  "model": "deepseek-flash",
+  "prompt_version": "v1",
+  "batch_size": 20,
+  "workers": 24,
+  "elapsed_seconds": 152.1,
+  "reviews_score_le_3_dedup": 22493,
+  "routes": {
+    "llm": 13765,
+    "no_text": 8033,
+    "rule": 695
+  },
+  "llm_unique_texts": 13666,
+  "written_reviews": 14460,
+  "pending_reviews": 0,
+  "this_run": {
+    "requests": 683,
+    "failed_requests": 0,
+    "cache_hit_tokens": 0,
+    "cache_miss_tokens": 2069048,
+    "output_tokens": 1371824,
+    "cost_usd": 1.1334516000000006,
+    "peak_requests": 0,
+    "dropped_ungrounded": 5,
+    "dropped_invalid": 0
+  },
+  "this_run_failed_texts": 0,
+  "estimate": {
+    "batches": 684,
+    "input_tokens_est": 563978,
+    "output_tokens_est": 1503260,
+    "cost_usd_est": {
+      "peak": 1.973,
+      "off_peak": 0.986
+    }
+  }
+}

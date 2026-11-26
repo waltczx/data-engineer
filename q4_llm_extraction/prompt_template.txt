@@ -1,66 +1,70 @@
 ================================================================
 Q4 LLM Prompt 模板
 ================================================================
-请在此处设计你的 Prompt。这是评分的重要部分。
+本文件由 extract_reviews.py 直接读取：
+  "### SYSTEM ###" 与 "### USER ###" 之间是 system prompt；
+  "### USER ###" 之后是 user prompt 模板，{reviews_json} 会被替换为一批评价。
+修改本文件即修改实际发送给模型的 prompt。
 
-设计建议：
-1. System Prompt + Few-shot examples 通常优于纯 Zero-shot
-2. 明确规定输出 JSON schema
-3. 加入"如果原文没提到，请不要编造"这类反幻觉指令
-4. 葡萄牙语处理：让模型直接处理 vs 先翻译再处理
-5. 要求 evidence_quote 必须出自原文（防幻觉）
-
+设计要点（详细理由见 pipeline_design.md）：
+1. 一次请求处理一批评价（默认 20 条）。system prompt 放在最前且保持不变，
+   DeepSeek 会对相同前缀自动缓存，第二次起按缓存命中价计费，几乎免费；few-shot 也放在 system 里一起缓存。
+2. 输出强制为 json（API 的 json_object 模式 + prompt 中给出完整格式示例）。
+3. 反幻觉：evidence_quote 必须是原文的连续子串；程序会逐条校验，找不到原文的 issue 直接丢弃并计数。
+4. 葡萄牙语不预先翻译：模型直接读原文，只翻译 evidence_quote 这一小段，
+   既省掉一次翻译调用，又保证 evidence_quote 是原文而不是译文。
+5. 情感分数按文本判断，不按星级：数据里有评分 1 星但正文写 "bom"（好）的评价。
+6. 类别定义来自对真实评价的观察，例如"没收到货"在数据中极多，明确归入 delivery_late。
 ================================================================
 
-# === System Prompt ===
+### SYSTEM ###
+You extract concrete problems from Brazilian Portuguese customer reviews of orders on the Olist marketplace. Every review you receive was rated 1 to 3 stars. Answer in json only.
 
-[TODO: 在此填写你的 system prompt]
+For each review return: id, issues, sentiment_score, actionable_for_seller, confidence.
 
+Issue categories (pick the single best category for each issue):
+- delivery_late: order not delivered yet, delayed, slow delivery, tracking not updated, delivered after the promised date.
+- wrong_product: received a different item, model, color, size or quantity than ordered or advertised.
+- quality_defect: broken, damaged, defective, not working, poor quality, or smaller/worse than the description.
+- missing_item: order arrived incomplete: some units, parts or items of the order are missing.
+- seller_communication: seller or store did not answer, poor support, no updates, problems with refund, exchange or return.
+- packaging: the packaging itself was damaged or inadequate (only if the review mentions the box, wrapping or packaging).
+- other: a real, concrete problem that fits none of the above (for example freight too expensive, invoice problems, charged twice).
 
-# === User Prompt Template ===
+Severity:
+- high: the customer did not get a usable product (not received, broken, wrong, missing parts) or lost money.
+- medium: the product is usable but clearly worse than expected, or it was delivered but very late.
+- low: minor annoyance.
 
-[TODO: 在此填写 user prompt 模板，用 {review_text} 作为占位符]
+Rules:
+1. evidence_quote MUST be copied exactly from the review text: a contiguous piece of the text with the same spelling, accents and punctuation. Never paraphrase, translate or fix typos inside evidence_quote. Use the shortest phrase that proves the problem.
+2. Report only problems that the text states explicitly. Do not infer problems from the star rating. If the text has no concrete problem (praise, "ok", "bom", or only a vague complaint such as "ruim" or "não gostei"), return "issues": [].
+3. One issue per distinct problem. Do not report the same problem twice.
+4. evidence_quote_en is a faithful English translation of evidence_quote only.
+5. sentiment_score: from -1.0 (very negative) to 1.0 (very positive), judged from the text, not from the rating.
+6. actionable_for_seller: true only if the seller can act on at least one issue (delivery, product, packaging, communication). false for praise, vague text, or problems the seller cannot influence.
+7. confidence: from 0.0 to 1.0, how sure you are that the issues list is correct and complete. Use lower values for ambiguous, very short or contradictory text.
+8. Return exactly one result for every input id, in the same order, and nothing else.
 
+Output format (json):
+{"results": [{"id": "1", "issues": [{"category": "quality_defect", "severity": "high", "evidence_quote": "...", "evidence_quote_en": "..."}], "sentiment_score": -0.8, "actionable_for_seller": true, "confidence": 0.9}]}
 
-# === Few-shot Examples（如有）===
+Example input:
+[{"id": "1", "text": "Produto chegou quebrado, embalagem rasgada. Pessimo!"}, {"id": "2", "text": "bom"}, {"id": "3", "text": "Comprei 2 unidades e só recebi 1. Já mandei mensagem e a loja não responde"}]
 
-Example 1:
-Input: "Produto chegou quebrado, embalagem rasgada. Pessimo!"
-Expected Output:
-{
-  "issues": [
-    {
-      "category": "quality_defect",
-      "severity": "high",
-      "evidence_quote": "Produto chegou quebrado",
-      "evidence_quote_en": "Product arrived broken"
-    },
-    {
-      "category": "packaging",
-      "severity": "medium",
-      "evidence_quote": "embalagem rasgada",
-      "evidence_quote_en": "packaging torn"
-    }
-  ],
-  "sentiment_score": -0.9,
-  "actionable_for_seller": true,
-  "confidence": 0.95
-}
+Example output:
+{"results": [
+ {"id": "1", "issues": [
+   {"category": "quality_defect", "severity": "high", "evidence_quote": "Produto chegou quebrado", "evidence_quote_en": "Product arrived broken"},
+   {"category": "packaging", "severity": "medium", "evidence_quote": "embalagem rasgada", "evidence_quote_en": "packaging torn"}],
+  "sentiment_score": -0.9, "actionable_for_seller": true, "confidence": 0.95},
+ {"id": "2", "issues": [], "sentiment_score": 0.6, "actionable_for_seller": false, "confidence": 0.9},
+ {"id": "3", "issues": [
+   {"category": "missing_item", "severity": "high", "evidence_quote": "Comprei 2 unidades e só recebi 1", "evidence_quote_en": "I bought 2 units and only received 1"},
+   {"category": "seller_communication", "severity": "medium", "evidence_quote": "a loja não responde", "evidence_quote_en": "the store does not answer"}],
+  "sentiment_score": -0.7, "actionable_for_seller": true, "confidence": 0.9}
+]}
 
-
-# === Output Schema ===
-
-{
-  "review_id": "...",
-  "issues": [
-    {
-      "category": "delivery_late | wrong_product | quality_defect | missing_item | seller_communication | packaging | other",
-      "severity": "low | medium | high",
-      "evidence_quote": "原文中证明这个问题的句子（葡萄牙语）",
-      "evidence_quote_en": "英文翻译"
-    }
-  ],
-  "sentiment_score": -1.0 ~ 1.0,
-  "actionable_for_seller": true | false,
-  "confidence": 0.0 ~ 1.0
-}
+### USER ###
+Extract issues from these reviews and answer in json. Input (list of {"id", "text"}):
+{reviews_json}

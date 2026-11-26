@@ -1,0 +1,55 @@
+{
+  "labeled": 30,
+  "exact_match": 27,
+  "exact_match_rate": 0.9,
+  "micro_precision": 0.846,
+  "micro_recall": 0.88,
+  "per_category": {
+    "delivery_late": {
+      "tp": 8,
+      "fp": 1,
+      "fn": 1,
+      "precision": 0.889,
+      "recall": 0.889
+    },
+    "missing_item": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "other": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "quality_defect": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 1,
+      "precision": 1.0,
+      "recall": 0.8
+    },
+    "seller_communication": {
+      "tp": 2,
+      "fp": 1,
+      "fn": 1,
+      "precision": 0.667,
+      "recall": 0.667
+    },
+    "wrong_product": {
+      "tp": 2,
+      "fp": 2,
+      "fn": 0,
+      "precision": 0.5,
+      "recall": 1.0
+    }
+  },
+  "by_route": {
+    "llm": 0.8,
+    "rule": 1.0
+  }
+}
