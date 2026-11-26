@@ -1,6 +1,7 @@
 """笔试题统一入口：按模块运行已经实现的 Python 脚本。
 
 用法：
+    python run_all.py --download        # 只下载两份数据集，不运行任何模块
     python run_all.py --check           # 只检查文件路径，不读取 CSV 内容
     python run_all.py --module q1       # 只运行第一题
     python run_all.py                   # 依次尝试所有模块
@@ -182,7 +183,23 @@ def main() -> int:
         action="store_true",
         help="只核对输入文件和脚本路径，不执行模块、不读取 CSV",
     )
+    parser.add_argument(
+        "--download",
+        action="store_true",
+        help="只下载两份数据集到 data/，不运行任何模块",
+    )
     args = parser.parse_args()
+
+    if args.download:
+        # 两份数据集分别尝试：一份失败不影响另一份，已存在的文件会自动跳过。
+        download_failed = False
+        for label, ensure in (("Online Retail II", ensure_retail), ("Olist", ensure_olist)):
+            try:
+                ensure()
+            except (OSError, RuntimeError) as exc:
+                print(f"{label} 下载失败：{exc}", file=sys.stderr)
+                download_failed = True
+        return 1 if download_failed else 0
 
     selected = MODULES if args.module == "all" else {args.module: MODULES[args.module]}
     failed = False
