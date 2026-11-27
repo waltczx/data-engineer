@@ -9,16 +9,27 @@
 --    所以它也会出现在结果里。它不是"翻译缺失"，而是"类别缺失"，单独标成 (类别为空)。
 --    这样结果是 3 行：2 个真正没有翻译的类别 + 1 个空类别。
 -- ============================================================
+
+WITH category_counts AS (
+    SELECT
+        NULLIF(TRIM(product_category_name), '') AS category_name,
+        COUNT(*) AS product_count
+    FROM products
+    GROUP BY NULLIF(TRIM(product_category_name), '')
+)
 SELECT
-    COALESCE(p.product_category_name, '(类别为空)') AS product_category_name,
-    CASE WHEN p.product_category_name IS NULL THEN '类别缺失' ELSE '翻译缺失' END AS gap_type,
-    COUNT(*) AS product_count
-FROM products AS p
+    COALESCE(c.category_name, '(类别为空)') AS product_category_name,
+    CASE
+        WHEN c.category_name IS NULL THEN '类别缺失'
+        ELSE '翻译缺失'
+    END AS gap_type,
+    c.product_count
+FROM category_counts AS c
 LEFT JOIN product_category_name_translation AS t
-       ON t.product_category_name = p.product_category_name
-WHERE t.product_category_name IS NULL
-GROUP BY p.product_category_name
-ORDER BY product_count DESC;
+    ON t.product_category_name = c.category_name
+WHERE c.category_name IS NULL
+   OR NULLIF(TRIM(t.product_category_name_english), '') IS NULL
+ORDER BY c.product_count DESC, product_category_name;
 
 -- ============================================================
 -- 进阶：缺失翻译的 3 种处理方案

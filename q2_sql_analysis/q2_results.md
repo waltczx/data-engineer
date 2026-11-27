@@ -1,8 +1,8 @@
 # Q2 查询结果
 
-本文件由 `run_sql.py` 生成（2026-11-26 22:22），每次运行覆盖。口径说明见各 .sql 文件开头的注释。
+本文件由 `run_sql.py` 生成（2026-11-27 07:56），每次运行覆盖。口径说明见各 .sql 文件开头的注释。
 
-MySQL 版本：8.0.46-0ubuntu0.24.04.5
+MySQL 版本：8.0.43
 
 ## q2_1_translation_gap.sql
 
@@ -16,7 +16,7 @@ MySQL 版本：8.0.46-0ubuntu0.24.04.5
 
 ## q2_2_monthly_metrics.sql
 
-25 行，耗时 1.20 秒。
+25 行，耗时 1.74 秒。
 
 | month | total_orders | delivered_orders | canceled_orders | cancel_rate | delivered_gmv | avg_delivery_days |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -48,7 +48,7 @@ MySQL 版本：8.0.46-0ubuntu0.24.04.5
 
 ## q2_3_top_sellers.sql
 
-20 行，耗时 1.96 秒。
+20 行，耗时 2.72 秒。
 
 | seller_id | seller_state | gmv_2017 | order_count | unique_customers | avg_review_score | late_delivery_rate | cancel_rate | state_rank |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
